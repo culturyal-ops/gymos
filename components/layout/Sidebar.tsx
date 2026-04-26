@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { getBrowserSupabase } from "@/lib/supabase/browser";
 
 const navGroups = [
   {
@@ -30,6 +31,13 @@ const navGroups = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    const supabase = getBrowserSupabase();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[220px] border-r border-[--color-border] bg-[--color-surface] p-4">
@@ -74,7 +82,10 @@ export function Sidebar() {
           </div>
           <div className="flex gap-2">
             <ThemeToggle />
-            <button className="flex-1 rounded-md border border-[--color-border] py-2 text-sm text-[--color-text-secondary] transition-colors hover:border-[--color-border-hover] hover:bg-[--color-surface-2]">
+            <button
+              onClick={handleSignOut}
+              className="flex-1 rounded-md border border-[--color-border] py-2 text-sm text-[--color-text-secondary] transition-colors hover:border-[--color-border-hover] hover:bg-[--color-surface-2]"
+            >
               Sign out
             </button>
           </div>

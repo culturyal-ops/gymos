@@ -18,6 +18,14 @@ import { formatCurrency } from "@/lib/utils/format";
 
 type ModalKey = "addMember" | "logPayment" | "whatsappBlast" | "addLead" | null;
 
+interface AutomationEvent {
+  id: string;
+  type: string;
+  status: string;
+  created_at: string | null;
+  payload: Record<string, unknown> | null;
+}
+
 interface DashboardClientProps {
   members: Member[];
   leads: Lead[];
@@ -28,55 +36,50 @@ interface DashboardClientProps {
     expiring: number;
     churned: number;
   };
-  isDemo: boolean;
+  automationEvents: AutomationEvent[];
 }
 
-export function DashboardClient({ members, leads, transactions, metrics, isDemo }: DashboardClientProps) {
+export function DashboardClient({
+  members,
+  leads,
+  transactions,
+  metrics,
+  automationEvents,
+}: DashboardClientProps) {
   const [activeModal, setActiveModal] = useState<ModalKey>(null);
 
   return (
     <div>
-      {isDemo && (
-        <div className="mb-4 rounded-md bg-[--color-gold-dim] p-2 text-center text-xs text-[--color-gold]">
-          System is running in Demo Mode. Connect Supabase to see real data.
-        </div>
-      )}
-      
       <Topbar onAddMember={() => setActiveModal("addMember")} />
 
       <section className="grid grid-cols-4 gap-4">
         <MetricCard
           label="Monthly Revenue"
-          value={formatCurrency(metrics.mrr).replace("₹", "₹")}
-          subtext="Projected ₹3.2L by month end"
-          badge="↑ 18% vs last month"
-          badgeType="up"
+          value={formatCurrency(metrics.mrr)}
+          subtext={`${transactions.length} transactions`}
           accentColor="gold"
           index={0}
         />
         <MetricCard
           label="Active Members"
           value={metrics.active.toString()}
-          subtext="12 joined this week"
-          badge="↑ 9%"
-          badgeType="up"
+          subtext={`${members.length} total members`}
           accentColor="green"
           index={1}
         />
         <MetricCard
           label="Expiring Soon"
           value={metrics.expiring.toString()}
-          subtext="Next 7 days · Auto-remind ON"
-          badge="Urgent"
-          badgeType="down"
+          subtext="Next 7 days"
+          badge={metrics.expiring > 0 ? "Urgent" : undefined}
+          badgeType={metrics.expiring > 0 ? "down" : undefined}
           accentColor="red"
           index={2}
         />
         <MetricCard
-          label="Today's Check-ins"
-          value="71"
-          subtext="Peak batch: 6AM"
-          badge="+11 vs yesterday"
+          label="Churned"
+          value={metrics.churned.toString()}
+          subtext="Need re-engagement"
           accentColor="blue"
           index={3}
         />
@@ -91,7 +94,7 @@ export function DashboardClient({ members, leads, transactions, metrics, isDemo 
             onAddMember={() => setActiveModal("addMember")}
             onAddLead={() => setActiveModal("addLead")}
           />
-          <AutomationFeed />
+          <AutomationFeed events={automationEvents} />
         </div>
       </section>
 
@@ -103,23 +106,10 @@ export function DashboardClient({ members, leads, transactions, metrics, isDemo 
         </div>
       </section>
 
-      {/* Modals */}
-      <AddMemberModal
-        open={activeModal === "addMember"}
-        onClose={() => setActiveModal(null)}
-      />
-      <LogPaymentModal
-        open={activeModal === "logPayment"}
-        onClose={() => setActiveModal(null)}
-      />
-      <WhatsAppBlastModal
-        open={activeModal === "whatsappBlast"}
-        onClose={() => setActiveModal(null)}
-      />
-      <AddLeadModal
-        open={activeModal === "addLead"}
-        onClose={() => setActiveModal(null)}
-      />
+      <AddMemberModal open={activeModal === "addMember"} onClose={() => setActiveModal(null)} />
+      <LogPaymentModal open={activeModal === "logPayment"} onClose={() => setActiveModal(null)} />
+      <WhatsAppBlastModal open={activeModal === "whatsappBlast"} onClose={() => setActiveModal(null)} />
+      <AddLeadModal open={activeModal === "addLead"} onClose={() => setActiveModal(null)} />
     </div>
   );
 }
