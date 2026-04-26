@@ -39,7 +39,7 @@ export function AutomationFeed({ events }: AutomationFeedProps) {
       </h3>
       {events.length === 0 ? (
         <div className="py-6 text-center text-xs text-[--color-text-muted]">
-          No automation events yet. They'll appear here as WhatsApp messages are sent.
+          No automation events yet. They&apos;ll appear here as WhatsApp messages are sent.
         </div>
       ) : (
         <ul className="space-y-3">
