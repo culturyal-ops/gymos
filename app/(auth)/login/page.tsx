@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { motion } from "framer-motion";
+import { getBrowserSupabase } from "@/lib/supabase/browser";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -18,12 +19,21 @@ export default function LoginPage() {
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
-    // TODO: Wire to Supabase Auth
-    // For now, simple mock login
-    await new Promise((r) => setTimeout(r, 1000));
+    const supabase = getBrowserSupabase();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    if (email === "reception@gym.com") {
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (email === "reception@gym.com" || email.includes("reception")) {
       router.push("/reception");
     } else {
       router.push("/");

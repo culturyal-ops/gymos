@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { getAdminSupabase } from "@/lib/supabase/admin";
+import { getServerSupabase } from "@/lib/supabase/server";
 import { TEST_GYM_ID } from "@/lib/gym-context";
 import { errorResponse, safeJson } from "@/lib/api";
 import { hasServiceSupabaseEnv } from "@/lib/env";
@@ -20,12 +21,43 @@ export async function GET() {
     return NextResponse.json(demoMembers);
   }
 
+  const serverClient = await getServerSupabase();
+  const { data: { user } } = await serverClient.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(demoMembers);
+  }
+
   const supabase = getAdminSupabase();
+  let gymId = null;
+
+  const { data: gymData } = await supabase
+    .from("gyms")
+    .select("id")
+    .eq("owner_id", user.id)
+    .single();
+
+  if (gymData) {
+    gymId = gymData.id;
+  } else {
+    const { data: staffData } = await supabase
+      .from("gym_staff")
+      .select("gym_id")
+      .eq("user_id", user.id)
+      .single();
+    if (staffData) gymId = staffData.gym_id;
+  }
+
+  if (!gymId) {
+    return errorResponse("User has no associated gym", 403);
+  }
+
   const { data, error } = await supabase
     .from("members")
     .select("*")
-    .eq("gym_id", TEST_GYM_ID)
+    .eq("gym_id", gymId)
     .order("created_at", { ascending: false });
+
   if (error) return errorResponse(error.message, 500);
   return NextResponse.json(data);
 }
@@ -34,7 +66,10 @@ export async function POST(request: Request) {
   const parsed = memberSchema.safeParse(await safeJson(request));
   if (!parsed.success) return errorResponse(parsed.error.message);
 
-  if (!hasServiceSupabaseEnv()) {
+  const serverClient = await getServerSupabase();
+  const { data: { user } } = await serverClient.auth.getUser();
+
+  if (!hasServiceSupabaseEnv() || !user) {
     return NextResponse.json(
       {
         id: randomUUID(),
@@ -55,11 +90,39 @@ export async function POST(request: Request) {
   }
 
   const supabase = getAdminSupabase();
+  
+  let gymId = null;
+  let addedById = null;
+
+  const { data: gymData } = await supabase
+    .from("gyms")
+    .select("id")
+    .eq("owner_id", user.id)
+    .single();
+
+  if (gymData) {
+    gymId = gymData.id;
+  } else {
+    const { data: staffData } = await supabase
+      .from("gym_staff")
+      .select("id, gym_id")
+      .eq("user_id", user.id)
+      .single();
+    if (staffData) {
+      gymId = staffData.gym_id;
+      addedById = staffData.id;
+    }
+  }
+
+  if (!gymId) {
+    return errorResponse("User has no associated gym", 403);
+  }
+
   const { data, error } = await supabase
     .from("members")
     .insert({
       id: randomUUID(),
-      gym_id: TEST_GYM_ID,
+      gym_id: gymId,
       name: parsed.data.name,
       phone: parsed.data.phone,
       email: parsed.data.email ?? null,
@@ -67,7 +130,7 @@ export async function POST(request: Request) {
       status: parsed.data.status,
       expiry_date: new Date(Date.now() + 30 * 86400000).toISOString(),
       joined_at: new Date().toISOString(),
-      added_by: "55555555-5555-5555-5555-555555555555"
+      added_by: addedById
     })
     .select("*")
     .single();
