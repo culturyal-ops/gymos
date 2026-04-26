@@ -8,37 +8,57 @@ import { Input } from "@/components/ui/Input";
 import { motion } from "framer-motion";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  async function handleLogin(e: FormEvent<HTMLFormElement>) {
+  async function handleRegister(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    const gymName = formData.get("gymName") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
     const supabase = getBrowserSupabase();
-    const { error } = await supabase.auth.signInWithPassword({
+    
+    // 1. Sign up the user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    if (error) {
-      setError(error.message);
+    if (authError) {
+      setError(authError.message);
       setLoading(false);
       return;
     }
 
-    if (email === "reception@gym.com" || email.includes("reception")) {
-      router.push("/reception");
-    } else {
-      router.push("/");
+    if (!authData.user) {
+      setError("Registration failed. Please try again.");
+      setLoading(false);
+      return;
     }
+
+    // 2. Provision their gym
+    const res = await fetch("/api/auth/register-gym", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gymName }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      setError(errData.error || "Failed to provision gym tenant.");
+      setLoading(false);
+      return;
+    }
+
+    // 3. Navigate to dashboard
+    router.push("/");
   }
 
   return (
@@ -55,14 +75,21 @@ export default function LoginPage() {
       >
         <div className="text-center mb-8">
           <h1 className="font-display text-4xl font-bold tracking-tight">
-            Gym<span className="text-[--color-gold]">OS</span>
+            Register<span className="text-[--color-gold]"> Gym</span>
           </h1>
           <p className="mt-2 text-sm text-[--color-text-secondary] uppercase tracking-widest">
-            The Revenue Engine
+            Join the Revenue Engine
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleRegister} className="space-y-6">
+          <Input
+            name="gymName"
+            label="Gym Name"
+            placeholder="Titan Fitness"
+            type="text"
+            required
+          />
           <Input
             name="email"
             label="Email Address"
@@ -76,6 +103,7 @@ export default function LoginPage() {
             placeholder="••••••••"
             type="password"
             required
+            minLength={6}
           />
 
           {error && (
@@ -85,19 +113,16 @@ export default function LoginPage() {
           )}
 
           <Button variant="primary" type="submit" className="w-full py-4 text-base" disabled={loading}>
-            {loading ? "Authenticating..." : "Sign In to Dashboard"}
+            {loading ? "Creating Account..." : "Create Account & Dashboard"}
           </Button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-[--color-border] text-center space-y-3">
+        <div className="mt-8 pt-6 border-t border-[--color-border] text-center">
           <p className="text-sm text-[--color-text-secondary]">
-            Don't have an account?{" "}
-            <Link href="/register" className="text-[--color-gold] hover:underline font-medium">
-              Sign Up
+            Already have an account?{" "}
+            <Link href="/login" className="text-[--color-gold] hover:underline font-medium">
+              Sign In
             </Link>
-          </p>
-          <p className="text-xs text-[--color-text-muted]">
-            Forgot your password? Contact system administrator.
           </p>
         </div>
       </motion.section>
