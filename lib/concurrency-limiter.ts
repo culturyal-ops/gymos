@@ -69,7 +69,7 @@ export async function acquireSlot(
       .update({
         active_slots: activeSlots + 1,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq("gym_id", gymId);
 
     if (error) {
@@ -110,7 +110,7 @@ export async function releaseSlot(
       .update({
         active_slots: newActiveSlots,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq("gym_id", gymId);
 
     if (error) {
@@ -139,7 +139,7 @@ async function initializeSlots(
         gym_id: gymId,
         active_slots: 0,
         max_slots: DEFAULT_MAX_SLOTS
-      });
+      } as any);
   } catch (error) {
     console.error("Slot initialization error:", error);
   }
