@@ -45,6 +45,15 @@ async function resolveGymAndStaff(): Promise<{
   if (staffData)
     return { gymId: staffData.gym_id, staffId: staffData.id, userId: user.id };
 
+  // Last resort: return first gym in DB (single-tenant dev mode)
+  const { data: firstGym } = await supabase
+    .from("gyms")
+    .select("id")
+    .limit(1)
+    .single();
+
+  if (firstGym) return { gymId: firstGym.id, staffId: null, userId: user.id };
+
   return { gymId: TEST_GYM_ID, staffId: null, userId: null };
 }
 
