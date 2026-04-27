@@ -154,6 +154,13 @@ export async function POST(
       discountApplied = Math.round((finalAmount * discount.percentage) / 100);
       finalAmount = Math.max(0, finalAmount - discountApplied);
       discountCode = parsed.data.coupon_code;
+
+      // Increment discount usage
+      await supabase
+        .from("discounts")
+        .update({ current_uses: (discount.current_uses || 0) + 1 })
+        .eq("code", discountCode)
+        .eq("gym_id", gym.id);
     }
 
     // Create Razorpay payment link
@@ -198,15 +205,6 @@ export async function POST(
     if (auditError) {
       console.error("Audit log error:", auditError);
       // Don't fail the request, just log the error
-    }
-
-    // Increment discount usage if applied
-    if (discountCode) {
-      await supabase
-        .from("discounts")
-        .update({ current_uses: (discount?.current_uses || 0) + 1 })
-        .eq("code", discountCode)
-        .eq("gym_id", gym.id);
     }
 
     return NextResponse.json({
