@@ -6,6 +6,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { db } from "@/lib/supabase/typed-client";
 import { IntentKey, generateCacheKey, getCacheTTL } from "./ai-intent-classifier";
 
 /**
@@ -20,7 +21,7 @@ export async function getCachedResponse(
   try {
     const cacheKey = generateCacheKey(queryMessage);
 
-    const { data, error } = await supabase
+    const { data, error } = await db(supabase)
       .from("response_cache")
       .select("response_json, expires_at")
       .eq("gym_id", gymId)
@@ -70,7 +71,7 @@ export async function cacheResponse(
 
     const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString();
 
-    const { error } = await supabase
+    const { error } = await db(supabase)
       .from("response_cache")
       .upsert(
         {
@@ -109,7 +110,7 @@ export async function logAICost(
   costUsd?: number
 ): Promise<{ success: boolean }> {
   try {
-    const { error } = await supabase
+    const { error } = await db(supabase)
       .from("ai_cost_log")
       .insert({
         gym_id: gymId,
@@ -141,7 +142,7 @@ export async function invalidateGymCache(
   intentKeys?: IntentKey[]
 ): Promise<{ success: boolean; deletedCount?: number }> {
   try {
-    let query = supabase
+    let query = db(supabase)
       .from("response_cache")
       .delete()
       .eq("gym_id", gymId);
@@ -182,7 +183,7 @@ export async function getCacheStats(
   try {
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
-    const { data, error } = await supabase
+    const { data, error } = await db(supabase)
       .from("ai_cost_log")
       .select("cache_hit, cost_usd")
       .eq("gym_id", gymId)

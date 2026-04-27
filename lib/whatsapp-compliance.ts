@@ -8,6 +8,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { db } from "@/lib/supabase/typed-client";
 
 const MAX_MESSAGES_PER_DAY = 50;
 
@@ -19,7 +20,7 @@ export async function isPhoneOptedOut(
   gymId: string,
   phoneNumber: string
 ): Promise<boolean> {
-  const { data, error } = await supabase
+  const { data, error } = await db(supabase)
     .from("whatsapp_opt_outs")
     .select("id")
     .eq("gym_id", gymId)
@@ -43,7 +44,7 @@ export async function addPhoneOptOut(
   phoneNumber: string,
   reason?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const { error } = await supabase
+  const { error } = await db(supabase)
     .from("whatsapp_opt_outs")
     .insert({
       gym_id: gymId,
@@ -71,7 +72,7 @@ export async function hasReachedDailyLimit(
 ): Promise<boolean> {
   const today = new Date().toISOString().split("T")[0];
 
-  const { data, error } = await supabase
+  const { data, error } = await db(supabase)
     .from("whatsapp_daily_counts")
     .select("count")
     .eq("gym_id", gymId)
@@ -94,7 +95,7 @@ export async function getDailyMessageCount(
 ): Promise<number> {
   const today = new Date().toISOString().split("T")[0];
 
-  const { data, error } = await supabase
+  const { data, error } = await db(supabase)
     .from("whatsapp_daily_counts")
     .select("count")
     .eq("gym_id", gymId)
@@ -118,7 +119,7 @@ export async function incrementDailyCount(
   const today = new Date().toISOString().split("T")[0];
 
   // Try to update existing record
-  const { data: existing, error: fetchError } = await supabase
+  const { data: existing, error: fetchError } = await db(supabase)
     .from("whatsapp_daily_counts")
     .select("id, count")
     .eq("gym_id", gymId)
@@ -131,7 +132,7 @@ export async function incrementDailyCount(
 
   if (existing) {
     // Update existing
-    const { error: updateError } = await supabase
+    const { error: updateError } = await db(supabase)
       .from("whatsapp_daily_counts")
       .update({ count: existing.count + 1 })
       .eq("id", existing.id);
@@ -141,7 +142,7 @@ export async function incrementDailyCount(
     }
   } else {
     // Insert new
-    const { error: insertError } = await supabase
+    const { error: insertError } = await db(supabase)
       .from("whatsapp_daily_counts")
       .insert({
         gym_id: gymId,
