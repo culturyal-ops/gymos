@@ -68,7 +68,7 @@ export default function BillingClient({ gym, subscription, invoices }: Props) {
     });
   }
 
-  const statusColor: Record<string, string> = {
+  const statusColor: Record<string, "green" | "red" | "yellow"> = {
     active:    "green",
     halted:    "red",
     cancelled: "red",
@@ -100,7 +100,7 @@ export default function BillingClient({ gym, subscription, invoices }: Props) {
                 </p>
               )}
             </div>
-            <StatusPill status={statusColor[subscription.status] ?? "yellow"} label={subscription.status} />
+            <StatusPill status={(statusColor[subscription.status] ?? "yellow") as "green" | "red" | "yellow"} label={subscription.status} />
           </div>
           {subscription.status === "halted" && (
             <p className="mt-3 rounded-[--radius-sm] bg-[--color-red-dim] px-3 py-2 text-xs text-[--color-red]">
