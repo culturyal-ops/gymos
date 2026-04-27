@@ -56,7 +56,7 @@ export async function acquireSlot(
 ): Promise<{ acquired: boolean; activeSlots: number }> {
   try {
     // Check availability first
-    const { available, activeSlots, maxSlots } = await hasAvailableSlot(supabase, gymId);
+    const { available, activeSlots } = await hasAvailableSlot(supabase, gymId);
 
     if (!available) {
       return { acquired: false, activeSlots };

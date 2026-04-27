@@ -79,7 +79,7 @@ export function LeadsClient({ initialLeads }: LeadsClientProps) {
             const colLeads = leads.filter((l: Lead) => l.stage === col.key);
             return (
               <Droppable key={col.key} droppableId={col.key}>
-                {(provided: any, snapshot: any) => (
+                {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
@@ -104,7 +104,7 @@ export function LeadsClient({ initialLeads }: LeadsClientProps) {
                     <div className="space-y-2">
                       {colLeads.map((lead: Lead, idx: number) => (
                         <Draggable key={lead.id} draggableId={lead.id} index={idx}>
-                          {(dragProvided: any, dragSnapshot: any) => (
+                          {(dragProvided, dragSnapshot) => (
                             <div
                               ref={dragProvided.innerRef}
                               {...dragProvided.draggableProps}
