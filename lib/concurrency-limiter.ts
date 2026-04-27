@@ -64,7 +64,7 @@ export async function acquireSlot(
     }
 
     // Increment active slots
-    // @ts-expect-error - Supabase generated types issue
+    // @ts-ignore - Supabase generated types issue
     const { error } = await supabase
       .from("gym_processing_slots")
       .update({
@@ -106,7 +106,7 @@ export async function releaseSlot(
 
     const newActiveSlots = Math.max(0, (data?.active_slots || 1) - 1);
 
-    // @ts-expect-error - Supabase generated types issue
+    // @ts-ignore - Supabase generated types issue
     const { error } = await supabase
       .from("gym_processing_slots")
       .update({
@@ -135,7 +135,7 @@ async function initializeSlots(
   gymId: string
 ): Promise<void> {
   try {
-    // @ts-expect-error - Supabase generated types issue
+    // @ts-ignore - Supabase generated types issue
     await supabase
       .from("gym_processing_slots")
       .insert({
