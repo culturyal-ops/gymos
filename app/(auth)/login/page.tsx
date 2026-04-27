@@ -23,10 +23,7 @@ export default function LoginPage() {
     const password = formData.get("password") as string;
 
     const supabase = getBrowserSupabase();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setError(error.message);
@@ -42,69 +39,91 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[--color-bg] p-6">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--color-gold-dim),transparent_70%)] opacity-20" />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[--color-bg] p-4">
+      {/* Background glow */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-0 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[--color-gold] opacity-[0.04] blur-[120px]" />
+        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] translate-x-1/3 translate-y-1/3 rounded-full bg-[--color-blue] opacity-[0.03] blur-[100px]" />
       </div>
 
-      <motion.section 
-        className="card w-full max-w-md p-10 relative z-10"
-        initial={{ opacity: 0, y: 20 }}
+      <motion.div
+        className="relative z-10 w-full max-w-sm"
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
       >
-        <div className="text-center mb-8">
-          <h1 className="font-display text-4xl font-bold tracking-tight">
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[--color-gold] shadow-[0_0_40px_rgba(201,168,76,0.3)]">
+            <span className="font-display text-2xl font-black text-black">G</span>
+          </div>
+          <h1 className="font-display text-3xl font-bold tracking-tight">
             Gym<span className="text-[--color-gold]">OS</span>
           </h1>
-          <p className="mt-2 text-sm text-[--color-text-secondary] uppercase tracking-widest">
-            The Revenue Engine
+          <p className="mt-1.5 text-xs uppercase tracking-[0.2em] text-[--color-text-muted]">
+            Revenue Engine
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <Input
-            name="email"
-            label="Email Address"
-            placeholder="owner@gym.com"
-            type="email"
-            required
-          />
-          <Input
-            name="password"
-            label="Password"
-            placeholder="••••••••"
-            type="password"
-            required
-          />
+        {/* Card */}
+        <div className="card p-6 sm:p-8">
+          <h2 className="mb-1 font-display text-lg font-bold">Welcome back</h2>
+          <p className="mb-6 text-sm text-[--color-text-secondary]">
+            Sign in to your dashboard
+          </p>
 
-          {error && (
-            <p className="rounded-[--radius-sm] bg-[--color-red-dim] px-3 py-2 text-xs text-[--color-red]">
-              {error}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <Input
+              name="email"
+              label="Email"
+              placeholder="owner@gym.com"
+              type="email"
+              required
+              autoComplete="email"
+            />
+            <Input
+              name="password"
+              label="Password"
+              placeholder="••••••••"
+              type="password"
+              required
+              autoComplete="current-password"
+            />
+
+            {error && (
+              <div className="flex items-start gap-2 rounded-[--radius-md] bg-[--color-red-dim] px-3 py-2.5">
+                <span className="mt-0.5 text-xs text-[--color-red]">⚠</span>
+                <p className="text-xs text-[--color-red]">{error}</p>
+              </div>
+            )}
+
+            <Button
+              variant="primary"
+              type="submit"
+              className="mt-2 w-full py-3 text-sm"
+              disabled={loading}
+            >
+              {loading ? "Signing in…" : "Sign In"}
+            </Button>
+          </form>
+
+          <div className="mt-6 border-t border-[--color-border] pt-5 text-center">
+            <p className="text-sm text-[--color-text-secondary]">
+              No account?{" "}
+              <Link
+                href="/register"
+                className="font-medium text-[--color-gold] hover:underline"
+              >
+                Register your gym
+              </Link>
             </p>
-          )}
-
-          <Button variant="primary" type="submit" className="w-full py-4 text-base" disabled={loading}>
-            {loading ? "Authenticating..." : "Sign In to Dashboard"}
-          </Button>
-        </form>
-
-        <div className="mt-8 pt-6 border-t border-[--color-border] text-center space-y-3">
-          <p className="text-sm text-[--color-text-secondary]">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-[--color-gold] hover:underline font-medium">
-              Sign Up
-            </Link>
-          </p>
-          <p className="text-xs text-[--color-text-muted]">
-            Forgot your password? Contact system administrator.
-          </p>
+          </div>
         </div>
-      </motion.section>
 
-      <div className="fixed bottom-8 text-[10px] text-[--color-text-muted] uppercase tracking-[0.2em]">
-        Secured by GymOS Infrastructure
-      </div>
+        <p className="mt-6 text-center text-[10px] uppercase tracking-[0.18em] text-[--color-text-muted]">
+          Secured by GymOS Infrastructure
+        </p>
+      </motion.div>
     </main>
   );
 }

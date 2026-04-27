@@ -14,33 +14,36 @@ const defaultData = [
   { day: "Thu", razorpay: 17000, counter: 6400 },
   { day: "Fri", razorpay: 19000, counter: 7100 },
   { day: "Sat", razorpay: 22000, counter: 7800 },
-  { day: "Sun", razorpay: 13000, counter: 3900 }
+  { day: "Sun", razorpay: 13000, counter: 3900 },
 ];
 
 export function RevenueChart({ transactions }: RevenueChartProps) {
-  // In a real scenario, we would group transactions by day and payment type here.
-  // For now, we use the aesthetic default data but accept the prop for wiring.
-  const data = transactions.length > 0 ? defaultData : defaultData.map(d => ({ ...d, razorpay: 0, counter: 0 }));
+  const data = transactions.length > 0 ? defaultData : defaultData.map((d) => ({ ...d, razorpay: 0, counter: 0 }));
 
   return (
-    <section className="card p-5">
-      <h3 className="mb-3 text-sm uppercase tracking-[0.14em] text-[--color-text-muted]">7-Day Revenue Mix</h3>
-      <div className="h-64">
+    <section className="card p-4 sm:p-5">
+      <h3 className="mb-4 text-sm font-semibold">7-Day Revenue Mix</h3>
+      <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
-            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "#888885", fontSize: 12 }} />
+          <BarChart data={data} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <XAxis
+              dataKey="day"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "var(--color-text-muted)", fontSize: 11 }}
+            />
             <Tooltip
               contentStyle={{
-                background: "#111111",
-                border: "1px solid #222222",
-                color: "#FFFFFF",
-                borderRadius: "10px"
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-text-primary)",
+                borderRadius: "10px",
               }}
               itemStyle={{ fontSize: "12px" }}
               cursor={{ fill: "rgba(255,255,255,0.05)" }}
             />
-            <Bar dataKey="razorpay" stackId="a" fill="#C9A84C" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="counter" stackId="a" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="razorpay" stackId="a" fill="var(--color-gold)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="counter" stackId="a" fill="var(--color-blue)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -55,10 +55,11 @@ export function DashboardClient({
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <Topbar onAddMember={() => setActiveModal("addMember")} />
 
-      <section className="grid grid-cols-4 gap-4">
+      {/* Metrics grid */}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Monthly Revenue"
           value={formatCurrency(metrics.mrr)}
@@ -69,7 +70,7 @@ export function DashboardClient({
         <MetricCard
           label="Active Members"
           value={metrics.active.toString()}
-          subtext={`${members.length} total members`}
+          subtext={`${members.length} total`}
           accentColor="green"
           index={1}
         />
@@ -91,9 +92,12 @@ export function DashboardClient({
         />
       </section>
 
-      <section className="mt-4 grid grid-cols-[1fr_380px] gap-4">
-        <MemberTable members={members} />
-        <div className="space-y-4">
+      {/* Main content grid */}
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <MemberTable members={members} />
+        </div>
+        <div className="space-y-6">
           <QuickActions
             onLogPayment={() => setActiveModal("logPayment")}
             onWhatsAppBlast={() => setActiveModal("whatsappBlast")}
@@ -104,14 +108,18 @@ export function DashboardClient({
         </div>
       </section>
 
-      <section className="mt-4 grid grid-cols-[1fr_380px] gap-4">
-        <RevenueChart transactions={transactions} />
-        <div className="space-y-4">
+      {/* Charts grid */}
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <RevenueChart transactions={transactions} />
+        </div>
+        <div className="space-y-6">
           <CashReconciliation transactions={transactions} />
           <LeadsMini leads={leads} />
         </div>
       </section>
 
+      {/* Modals */}
       <AddMemberModal
         open={activeModal === "addMember"}
         onClose={() => setActiveModal(null)}

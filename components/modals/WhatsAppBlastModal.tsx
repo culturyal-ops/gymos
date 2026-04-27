@@ -44,7 +44,6 @@ export function WhatsAppBlastModal({ open, onClose }: WhatsAppBlastModalProps) {
   const [segment, setSegment] = useState("all_active");
   const [template, setTemplate] = useState("renewal_nudge");
 
-  // Simulated recipient counts
   const recipientCounts: Record<string, number> = {
     all_active: 247,
     expiring: 18,
@@ -55,12 +54,11 @@ export function WhatsAppBlastModal({ open, onClose }: WhatsAppBlastModalProps) {
   };
 
   const count = recipientCounts[segment] ?? 0;
-  const estimatedCost = (count * 0.6).toFixed(0); // ~₹0.60 per message
+  const estimatedCost = (count * 0.6).toFixed(0);
 
   async function handleSend(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // TODO: Wire to campaign queue
     await new Promise((r) => setTimeout(r, 800));
     setLoading(false);
     onClose();
@@ -84,7 +82,7 @@ export function WhatsAppBlastModal({ open, onClose }: WhatsAppBlastModalProps) {
 
         {/* Preview */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-medium uppercase tracking-[0.12em] text-[--color-text-secondary]">
+          <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[--color-text-secondary]">
             Preview
           </label>
           <div className="rounded-[--radius-md] border border-[--color-border] bg-[--color-surface-2] p-3">

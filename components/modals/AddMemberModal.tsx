@@ -53,9 +53,10 @@ export function AddMemberModal({ open, onClose, onSuccess }: AddMemberModalProps
         <Select name="plan" label="Plan" options={planOptions} />
         <Input name="expiry" label="Expiry Date (Optional)" type="date" />
         {error && (
-          <p className="rounded-[--radius-sm] bg-[--color-red-dim] px-3 py-2 text-xs text-[--color-red]">
-            {error}
-          </p>
+          <div className="flex items-start gap-2 rounded-[--radius-md] bg-[--color-red-dim] px-3 py-2.5">
+            <span className="mt-0.5 text-xs text-[--color-red]">⚠</span>
+            <p className="text-xs text-[--color-red]">{error}</p>
+          </div>
         )}
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button variant="ghost" type="button" onClick={onClose}>

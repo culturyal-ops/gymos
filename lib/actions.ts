@@ -6,6 +6,7 @@ import { getAdminSupabase } from "@/lib/supabase/admin";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { hasServiceSupabaseEnv } from "@/lib/env";
 import { TEST_GYM_ID } from "@/lib/gym-context";
+import { vaultGymSecret, type GymSecretKey } from "@/lib/secrets";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -266,6 +267,11 @@ export async function saveSettings(formData: FormData) {
   const reminderDays = Number(formData.get("reminderDays")) || 7;
   const supplementEnabled = formData.get("supplementEnabled") === "true";
 
+  // Sensitive credentials — vault them if provided
+  const razorpayKeyId = formData.get("razorpayKeyId") as string | null;
+  const razorpaySecret = formData.get("razorpaySecret") as string | null;
+  const wabaToken = formData.get("wabaToken") as string | null;
+
   let pricing_json: Record<string, number> | null = null;
   try {
     pricing_json = JSON.parse(pricingRaw);
@@ -276,7 +282,20 @@ export async function saveSettings(formData: FormData) {
   const { gymId } = await resolveGymAndStaff();
   const supabase = getAdminSupabase();
 
-  // Update gym info
+  // Vault any newly-provided secrets (non-empty, non-placeholder values)
+  const secretsToVault: Array<[GymSecretKey, string]> = [];
+  if (razorpayKeyId && !razorpayKeyId.includes("••")) secretsToVault.push(["razorpay_key_id", razorpayKeyId]);
+  if (razorpaySecret && !razorpaySecret.includes("••")) secretsToVault.push(["razorpay_secret", razorpaySecret]);
+  if (wabaToken && !wabaToken.includes("••")) secretsToVault.push(["waba_token", wabaToken]);
+
+  for (const [key, value] of secretsToVault) {
+    const result = await vaultGymSecret(gymId, key, value);
+    if (!result.success) {
+      return { success: false, error: `Failed to vault ${key}: ${result.error}` };
+    }
+  }
+
+  // Update gym info (no plain-text secrets)
   await supabase
     .from("gyms")
     .update({ name: gymName, city, phone })

@@ -36,32 +36,36 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.1 }}
+          transition={{ duration: 0.15 }}
         >
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/85 backdrop-blur-[4px]"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           />
 
           {/* Card */}
           <motion.div
-            className="relative z-10 w-full max-w-lg rounded-[--radius-lg] border border-[--color-border] bg-[--color-surface] p-8 shadow-xl"
-            initial={{ scale: 0.96, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.96, opacity: 0 }}
-            transition={{ duration: 0.1, ease: "easeOut" }}
+            className="relative z-10 w-full max-w-lg rounded-[--radius-lg] border border-[--color-border] bg-[--color-surface] p-6 shadow-[--shadow-elevated] sm:p-8"
+            initial={{ scale: 0.94, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.94, opacity: 0, y: 20 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
           >
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
               <h2 className="font-display text-lg font-bold">{title}</h2>
               <button
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-[--color-text-secondary] transition-colors hover:bg-[--color-surface-3] hover:text-[--color-text-primary]"
+                className="flex h-8 w-8 items-center justify-center rounded-[--radius-md] text-[--color-text-secondary] transition-colors hover:bg-[--color-surface-3] hover:text-[--color-text-primary]"
+                aria-label="Close"
               >
                 ✕
               </button>

@@ -185,24 +185,29 @@ export default function SettingsPage() {
             Integrations
           </h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-[--radius-md] border border-[--color-border] bg-[--color-surface-2] p-4">
-              <div>
-                <p className="text-sm font-medium">Razorpay</p>
-                <p className="text-xs text-[--color-text-secondary]">rzp_live_••••••••kJ9d</p>
-              </div>
-              <span className="flex items-center gap-1.5 text-xs text-[--color-green]">
-                <span className="h-2 w-2 rounded-full bg-[--color-green]" /> Connected
-              </span>
+            <div className="grid grid-cols-2 gap-4">
+              <Input 
+                name="razorpayKeyId" 
+                label="Razorpay Key ID" 
+                placeholder="rzp_live_••••••••kJ9d" 
+                type="password"
+              />
+              <Input 
+                name="razorpaySecret" 
+                label="Razorpay Secret" 
+                placeholder="••••••••••••••••" 
+                type="password"
+              />
             </div>
-            <div className="flex items-center justify-between rounded-[--radius-md] border border-[--color-border] bg-[--color-surface-2] p-4">
-              <div>
-                <p className="text-sm font-medium">AiSensy (WhatsApp)</p>
-                <p className="text-xs text-[--color-text-secondary]">Token: ais_••••••••rT7m</p>
-              </div>
-              <span className="flex items-center gap-1.5 text-xs text-[--color-green]">
-                <span className="h-2 w-2 rounded-full bg-[--color-green]" /> Connected
-              </span>
-            </div>
+            <Input 
+              name="wabaToken" 
+              label="WhatsApp Business Token" 
+              placeholder="ais_••••••••rT7m" 
+              type="password"
+            />
+            <p className="text-[10px] text-[--color-text-muted]">
+              Credentials are encrypted and stored securely. Leave blank to keep existing values.
+            </p>
           </div>
         </section>
 

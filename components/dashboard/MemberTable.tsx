@@ -45,18 +45,18 @@ export function MemberTable({ members }: MemberTableProps) {
   ];
 
   return (
-    <section className="card p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-medium">Members</h2>
+    <section className="card p-4 sm:p-5">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-lg font-semibold">Members</h2>
         <div className="flex gap-2 text-xs">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
               className={cn(
-                "rounded-full px-3 py-1 transition-colors",
+                "rounded-full px-3 py-1.5 transition-colors",
                 tab === t.key
-                  ? "bg-[--color-gold-dim] text-[--color-gold]"
+                  ? "bg-[--color-gold-dim] text-[--color-gold] font-medium"
                   : "border border-[--color-border] text-[--color-text-secondary] hover:border-[--color-border-hover]"
               )}
             >
@@ -65,47 +65,84 @@ export function MemberTable({ members }: MemberTableProps) {
           ))}
         </div>
       </div>
-      <table className="w-full text-sm">
-        <thead className="text-[10px] uppercase tracking-[0.14em] text-[--color-text-muted]">
-          <tr className="border-b border-[--color-border]">
-            <th className="py-3 text-left">Member</th>
-            <th className="py-3 text-left">Plan</th>
-            <th className="py-3 text-left">Status</th>
-            <th className="py-3 text-left">Days Left</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.length > 0 ? (
-            filtered.map((member) => {
-              const days = getDaysLeft(member.expiry_date);
-              return (
-                <tr
-                  key={member.id}
-                  className="border-b border-[--color-border] text-[--color-text-secondary] transition-colors hover:bg-[--color-surface-2]"
-                >
-                  <td className="py-3">
-                    <p className="text-[--color-text-primary]">{member.name}</p>
-                    <p className="text-xs">{member.phone}</p>
-                  </td>
-                  <td className="py-3 uppercase">{member.plan_type?.replace("_", " ")}</td>
-                  <td className="py-3">
-                    <StatusPill status={(member.status as MemberStatus) ?? "paused"} />
-                  </td>
-                  <td className={cn("py-3 font-display font-bold", getDaysColor(days))}>
+
+      {/* Mobile cards */}
+      <div className="space-y-2 sm:hidden">
+        {filtered.length > 0 ? (
+          filtered.map((member) => {
+            const days = getDaysLeft(member.expiry_date);
+            return (
+              <div
+                key={member.id}
+                className="rounded-[--radius-md] border border-[--color-border] bg-[--color-surface-2] p-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="font-medium text-[--color-text-primary]">{member.name}</p>
+                    <p className="text-xs text-[--color-text-secondary]">{member.phone}</p>
+                  </div>
+                  <StatusPill status={(member.status as MemberStatus) ?? "paused"} />
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs">
+                  <span className="uppercase text-[--color-text-muted]">
+                    {member.plan_type?.replace("_", " ")}
+                  </span>
+                  <span className={cn("font-display font-bold", getDaysColor(days))}>
                     {getDaysLabel(days)}
-                  </td>
-                </tr>
-              );
-            })
-          ) : (
-            <tr>
-              <td colSpan={4} className="py-8 text-center text-[--color-text-muted]">
-                No members found.
-              </td>
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <p className="py-6 text-center text-sm text-[--color-text-muted]">No members found.</p>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="w-full text-sm">
+          <thead className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[--color-text-muted]">
+            <tr className="border-b border-[--color-border]">
+              <th className="py-3 text-left">Member</th>
+              <th className="py-3 text-left">Plan</th>
+              <th className="py-3 text-left">Status</th>
+              <th className="py-3 text-left">Days Left</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filtered.length > 0 ? (
+              filtered.map((member) => {
+                const days = getDaysLeft(member.expiry_date);
+                return (
+                  <tr
+                    key={member.id}
+                    className="border-b border-[--color-border] text-[--color-text-secondary] transition-colors hover:bg-[--color-surface-2]"
+                  >
+                    <td className="py-3">
+                      <p className="text-[--color-text-primary]">{member.name}</p>
+                      <p className="text-xs">{member.phone}</p>
+                    </td>
+                    <td className="py-3 uppercase">{member.plan_type?.replace("_", " ")}</td>
+                    <td className="py-3">
+                      <StatusPill status={(member.status as MemberStatus) ?? "paused"} />
+                    </td>
+                    <td className={cn("py-3 font-display font-bold", getDaysColor(days))}>
+                      {getDaysLabel(days)}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={4} className="py-8 text-center text-[--color-text-muted]">
+                  No members found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

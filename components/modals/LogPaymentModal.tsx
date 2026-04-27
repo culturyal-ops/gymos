@@ -91,7 +91,7 @@ export function LogPaymentModal({ open, onClose, members: propMembers, onSuccess
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Member search */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-medium uppercase tracking-[0.12em] text-[--color-text-secondary]">
+          <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[--color-text-secondary]">
             Member
           </label>
           {selectedMember ? (
@@ -102,7 +102,10 @@ export function LogPaymentModal({ open, onClose, members: propMembers, onSuccess
               </div>
               <button
                 type="button"
-                onClick={() => { setSelectedMember(null); setSearch(""); }}
+                onClick={() => {
+                  setSelectedMember(null);
+                  setSearch("");
+                }}
                 className="text-xs text-[--color-text-muted] hover:text-[--color-text-primary]"
               >
                 ✕
@@ -114,7 +117,7 @@ export function LogPaymentModal({ open, onClose, members: propMembers, onSuccess
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name or phone…"
-                className="w-full rounded-[--radius-md] border border-[--color-border] bg-[--color-surface-2] px-3 py-2.5 text-sm text-[--color-text-primary] placeholder:text-[--color-text-muted] transition-colors focus:border-[--color-gold] focus:outline-none focus:ring-1 focus:ring-[--color-gold-dim]"
+                className="w-full rounded-[--radius-md] border border-[--color-border] bg-[--color-surface-2] px-3.5 py-2.5 text-sm text-[--color-text-primary] placeholder:text-[--color-text-muted] transition-all duration-100 focus:border-[--color-gold] focus:outline-none focus:ring-2 focus:ring-[--color-gold-dim]"
               />
               {search && filtered.length > 0 && (
                 <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-[--radius-md] border border-[--color-border] bg-[--color-surface] shadow-lg">
@@ -122,7 +125,10 @@ export function LogPaymentModal({ open, onClose, members: propMembers, onSuccess
                     <button
                       key={m.id}
                       type="button"
-                      onClick={() => { setSelectedMember(m); setSearch(""); }}
+                      onClick={() => {
+                        setSelectedMember(m);
+                        setSearch("");
+                      }}
                       className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-[--color-surface-2]"
                     >
                       <span className="text-[--color-text-primary]">{m.name}</span>
@@ -153,9 +159,10 @@ export function LogPaymentModal({ open, onClose, members: propMembers, onSuccess
         </div>
 
         {error && (
-          <p className="rounded-[--radius-sm] bg-[--color-red-dim] px-3 py-2 text-xs text-[--color-red]">
-            {error}
-          </p>
+          <div className="flex items-start gap-2 rounded-[--radius-md] bg-[--color-red-dim] px-3 py-2.5">
+            <span className="mt-0.5 text-xs text-[--color-red]">⚠</span>
+            <p className="text-xs text-[--color-red]">{error}</p>
+          </div>
         )}
 
         <div className="flex items-center justify-end gap-3 pt-2">
