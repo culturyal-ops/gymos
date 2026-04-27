@@ -93,7 +93,7 @@ export async function releaseSlot(
   gymId: string
 ): Promise<{ success: boolean; activeSlots: number }> {
   try {
-    const { data, error: fetchError } = await supabase
+    const { data: rawData, error: fetchError } = await supabase
       .from("gym_processing_slots")
       .select("active_slots")
       .eq("gym_id", gymId)
@@ -104,6 +104,7 @@ export async function releaseSlot(
       return { success: false, activeSlots: 0 };
     }
 
+    const data = rawData as { active_slots: number } | null;
     const newActiveSlots = Math.max(0, (data?.active_slots || 1) - 1);
 
     const { error } = await supabase
