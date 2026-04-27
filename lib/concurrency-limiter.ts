@@ -64,12 +64,13 @@ export async function acquireSlot(
     }
 
     // Increment active slots
+    // @ts-expect-error - Supabase generated types issue
     const { error } = await supabase
       .from("gym_processing_slots")
       .update({
         active_slots: activeSlots + 1,
         updated_at: new Date().toISOString()
-      } as any)
+      })
       .eq("gym_id", gymId);
 
     if (error) {
@@ -105,12 +106,13 @@ export async function releaseSlot(
 
     const newActiveSlots = Math.max(0, (data?.active_slots || 1) - 1);
 
+    // @ts-expect-error - Supabase generated types issue
     const { error } = await supabase
       .from("gym_processing_slots")
       .update({
         active_slots: newActiveSlots,
         updated_at: new Date().toISOString()
-      } as any)
+      })
       .eq("gym_id", gymId);
 
     if (error) {
@@ -133,13 +135,14 @@ async function initializeSlots(
   gymId: string
 ): Promise<void> {
   try {
+    // @ts-expect-error - Supabase generated types issue
     await supabase
       .from("gym_processing_slots")
       .insert({
         gym_id: gymId,
         active_slots: 0,
         max_slots: DEFAULT_MAX_SLOTS
-      } as any);
+      });
   } catch (error) {
     console.error("Slot initialization error:", error);
   }
