@@ -43,11 +43,11 @@ export default function RegisterPage() {
       return;
     }
 
-    // 2. Provision their gym
+    // 2. Provision their gym — pass user id directly since session may not exist yet
     const res = await fetch("/api/auth/register-gym", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gymName }),
+      body: JSON.stringify({ gymName, userId: authData.user.id }),
     });
 
     if (!res.ok) {
