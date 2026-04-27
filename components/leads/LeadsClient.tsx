@@ -53,8 +53,8 @@ export function LeadsClient({ initialLeads }: LeadsClientProps) {
     if (!result.destination) return;
     const newStage = result.destination.droppableId as LeadStage;
     const leadId = result.draggableId;
-    setLeads((prev) =>
-      prev.map((l) => (l.id === leadId ? { ...l, stage: newStage } : l))
+    setLeads((prev: Lead[]) =>
+      prev.map((l: Lead) => (l.id === leadId ? { ...l, stage: newStage } : l))
     );
     updateLeadStage(leadId, newStage).catch(() => {});
   }, []);
@@ -76,10 +76,10 @@ export function LeadsClient({ initialLeads }: LeadsClientProps) {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-4 gap-4">
           {columns.map((col) => {
-            const colLeads = leads.filter((l) => l.stage === col.key);
+            const colLeads = leads.filter((l: Lead) => l.stage === col.key);
             return (
               <Droppable key={col.key} droppableId={col.key}>
-                {(provided, snapshot) => (
+                {(provided: any, snapshot: any) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
@@ -102,9 +102,9 @@ export function LeadsClient({ initialLeads }: LeadsClientProps) {
                     </div>
 
                     <div className="space-y-2">
-                      {colLeads.map((lead, idx) => (
+                      {colLeads.map((lead: Lead, idx: number) => (
                         <Draggable key={lead.id} draggableId={lead.id} index={idx}>
-                          {(dragProvided, dragSnapshot) => (
+                          {(dragProvided: any, dragSnapshot: any) => (
                             <div
                               ref={dragProvided.innerRef}
                               {...dragProvided.draggableProps}

@@ -8,6 +8,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { IntentKey, generateCacheKey, getCacheTTL } from "./ai-intent-classifier";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface CachedResponse {
   id: string;
   response_json: Record<string, unknown>;

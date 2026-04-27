@@ -138,9 +138,6 @@ async function initializeSlots(
         gym_id: gymId,
         active_slots: 0,
         max_slots: DEFAULT_MAX_SLOTS
-      })
-      .on("*", (payload) => {
-        // Ignore
       });
   } catch (error) {
     console.error("Slot initialization error:", error);

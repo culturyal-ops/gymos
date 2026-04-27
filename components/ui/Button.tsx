@@ -8,6 +8,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children: ReactNode;
+  className?: string;
+  disabled?: boolean;
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
