@@ -24,41 +24,47 @@ export default function RegisterPage() {
     const password = formData.get("password") as string;
 
     const supabase = getBrowserSupabase();
-    
-    // 1. Sign up the user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
 
-    if (authError) {
-      setError(authError.message);
+    // 1. Sign up
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+    if (signUpError) {
+      setError(signUpError.message);
       setLoading(false);
       return;
     }
 
-    if (!authData.user) {
-      setError("Registration failed. Please try again.");
+    // 2. Sign in immediately to get a session (handles email-confirm-off case)
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
       return;
     }
 
-    // 2. Provision their gym — pass user id directly since session may not exist yet
+    const userId = signInData.user?.id ?? signUpData.user?.id;
+    if (!userId) {
+      setError("Could not get user ID. Please try signing in.");
+      setLoading(false);
+      return;
+    }
+
+    // 3. Provision gym
     const res = await fetch("/api/auth/register-gym", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gymName, userId: authData.user.id }),
+      body: JSON.stringify({ gymName, userId }),
     });
 
     if (!res.ok) {
-      const errData = await res.json();
-      setError(errData.error || "Failed to provision gym tenant.");
+      const errData = await res.json().catch(() => ({}));
+      setError(errData.error || "Failed to provision gym.");
       setLoading(false);
       return;
     }
 
-    // 3. Navigate to dashboard
+    // 4. Go to dashboard
     router.push("/");
+    router.refresh();
   }
 
   return (
@@ -67,7 +73,7 @@ export default function RegisterPage() {
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--color-gold-dim),transparent_70%)] opacity-20" />
       </div>
 
-      <motion.section 
+      <motion.section
         className="card w-full max-w-md p-10 relative z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -83,28 +89,9 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleRegister} className="space-y-6">
-          <Input
-            name="gymName"
-            label="Gym Name"
-            placeholder="Titan Fitness"
-            type="text"
-            required
-          />
-          <Input
-            name="email"
-            label="Email Address"
-            placeholder="owner@gym.com"
-            type="email"
-            required
-          />
-          <Input
-            name="password"
-            label="Password"
-            placeholder="••••••••"
-            type="password"
-            required
-            minLength={6}
-          />
+          <Input name="gymName" label="Gym Name" placeholder="Titan Fitness" required />
+          <Input name="email" label="Email Address" placeholder="owner@gym.com" type="email" required />
+          <Input name="password" label="Password" placeholder="••••••••" type="password" required minLength={6} />
 
           {error && (
             <p className="rounded-[--radius-sm] bg-[--color-red-dim] px-3 py-2 text-xs text-[--color-red]">
