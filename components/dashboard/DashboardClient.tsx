@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Topbar } from "@/components/layout/Topbar";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { MemberTable } from "@/components/dashboard/MemberTable";
@@ -47,6 +48,11 @@ export function DashboardClient({
   automationEvents,
 }: DashboardClientProps) {
   const [activeModal, setActiveModal] = useState<ModalKey>(null);
+  const router = useRouter();
+
+  function handleSuccess() {
+    router.refresh();
+  }
 
   return (
     <div>
@@ -106,10 +112,26 @@ export function DashboardClient({
         </div>
       </section>
 
-      <AddMemberModal open={activeModal === "addMember"} onClose={() => setActiveModal(null)} />
-      <LogPaymentModal open={activeModal === "logPayment"} onClose={() => setActiveModal(null)} />
-      <WhatsAppBlastModal open={activeModal === "whatsappBlast"} onClose={() => setActiveModal(null)} />
-      <AddLeadModal open={activeModal === "addLead"} onClose={() => setActiveModal(null)} />
+      <AddMemberModal
+        open={activeModal === "addMember"}
+        onClose={() => setActiveModal(null)}
+        onSuccess={handleSuccess}
+      />
+      <LogPaymentModal
+        open={activeModal === "logPayment"}
+        onClose={() => setActiveModal(null)}
+        members={members}
+        onSuccess={handleSuccess}
+      />
+      <WhatsAppBlastModal
+        open={activeModal === "whatsappBlast"}
+        onClose={() => setActiveModal(null)}
+      />
+      <AddLeadModal
+        open={activeModal === "addLead"}
+        onClose={() => setActiveModal(null)}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }

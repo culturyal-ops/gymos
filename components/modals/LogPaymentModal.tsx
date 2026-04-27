@@ -1,14 +1,18 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { logPayment } from "@/lib/actions";
+import type { Member } from "@/lib/types";
 
 interface LogPaymentModalProps {
   open: boolean;
   onClose: () => void;
+  members?: Member[];
+  onSuccess?: () => void;
 }
 
 const modeOptions = [
@@ -23,40 +27,119 @@ const planOptions = [
   { value: "bronze_1m", label: "Bronze — 1 Month (₹1,500)" },
 ];
 
-export function LogPaymentModal({ open, onClose }: LogPaymentModalProps) {
-  const [loading, setLoading] = useState(false);
+export function LogPaymentModal({ open, onClose, members: propMembers, onSuccess }: LogPaymentModalProps) {
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [members, setMembers] = useState<Member[]>(propMembers ?? []);
+  const [search, setSearch] = useState("");
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (propMembers) {
+      setMembers(propMembers);
+      return;
+    }
+    if (open) {
+      fetch("/api/members")
+        .then((r) => r.json())
+        .then((data: Member[]) => setMembers(data))
+        .catch(() => {});
+    }
+  }, [open, propMembers]);
+
+  const filtered = search
+    ? members.filter(
+        (m) =>
+          m.name?.toLowerCase().includes(search.toLowerCase()) ||
+          m.phone?.includes(search)
+      )
+    : members;
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
-    const member = formData.get("member") as string;
-    const amount = formData.get("amount") as string;
-
-    if (!member || !amount) {
-      setError("Member and amount are required.");
-      setLoading(false);
+    if (!selectedMember) {
+      setError("Please select a member.");
       return;
     }
 
-    // TODO: Wire to Server Action — logPayment(formData)
-    await new Promise((r) => setTimeout(r, 600));
-    setLoading(false);
-    onClose();
+    const formData = new FormData(e.currentTarget);
+    formData.set("member_id", selectedMember.id);
+
+    if (!formData.get("amount")) {
+      setError("Amount is required.");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await logPayment(formData);
+      if (result.success) {
+        onSuccess?.();
+        onClose();
+        setSelectedMember(null);
+        setSearch("");
+        (e.target as HTMLFormElement).reset();
+      } else {
+        setError(result.error ?? "Failed to log payment.");
+      }
+    });
   }
 
   return (
     <Modal open={open} onClose={onClose} title="Log Payment">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          name="member"
-          label="Member Name or Phone"
-          placeholder="Search member…"
-          required
-        />
+        {/* Member search */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium uppercase tracking-[0.12em] text-[--color-text-secondary]">
+            Member
+          </label>
+          {selectedMember ? (
+            <div className="flex items-center justify-between rounded-[--radius-md] border border-[--color-gold] bg-[--color-gold-dim] px-3 py-2.5">
+              <div>
+                <p className="text-sm font-medium text-[--color-text-primary]">{selectedMember.name}</p>
+                <p className="text-xs text-[--color-text-secondary]">{selectedMember.phone}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setSelectedMember(null); setSearch(""); }}
+                className="text-xs text-[--color-text-muted] hover:text-[--color-text-primary]"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name or phone…"
+                className="w-full rounded-[--radius-md] border border-[--color-border] bg-[--color-surface-2] px-3 py-2.5 text-sm text-[--color-text-primary] placeholder:text-[--color-text-muted] transition-colors focus:border-[--color-gold] focus:outline-none focus:ring-1 focus:ring-[--color-gold-dim]"
+              />
+              {search && filtered.length > 0 && (
+                <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-[--radius-md] border border-[--color-border] bg-[--color-surface] shadow-lg">
+                  {filtered.slice(0, 8).map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => { setSelectedMember(m); setSearch(""); }}
+                      className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-[--color-surface-2]"
+                    >
+                      <span className="text-[--color-text-primary]">{m.name}</span>
+                      <span className="text-xs text-[--color-text-secondary]">{m.phone}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {search && filtered.length === 0 && (
+                <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-[--radius-md] border border-[--color-border] bg-[--color-surface] px-3 py-3 text-xs text-[--color-text-muted] shadow-lg">
+                  No members found
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <Input name="amount" label="Amount (₹)" placeholder="8000" type="number" required />
           <Select name="mode" label="Payment Mode" options={modeOptions} />
@@ -79,8 +162,8 @@ export function LogPaymentModal({ open, onClose }: LogPaymentModalProps) {
           <Button variant="ghost" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? "Logging…" : "Log Payment"}
+          <Button variant="primary" type="submit" disabled={isPending}>
+            {isPending ? "Logging…" : "Log Payment"}
           </Button>
         </div>
       </form>

@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { AddMemberModal } from "@/components/modals/AddMemberModal";
+import { LogPaymentModal } from "@/components/modals/LogPaymentModal";
 import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format";
+import { deleteMember, updateMemberStatus } from "@/lib/actions";
 import type { Member, MemberStatus } from "@/lib/types";
 
 type StatusFilter = "all" | "active" | "expiring" | "churned" | "paused";
@@ -40,11 +43,14 @@ const planLabels: Record<string, string> = {
 };
 
 export function MembersClient({ initialMembers }: MembersClientProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [addOpen, setAddOpen] = useState(false);
+  const [paymentMember, setPaymentMember] = useState<Member | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
@@ -76,6 +82,25 @@ export function MembersClient({ initialMembers }: MembersClientProps) {
     }
   }
 
+  function handleAction(action: string, member: Member) {
+    setMenuOpen(null);
+    if (action === "Log Payment") {
+      setPaymentMember(member);
+    } else if (action === "Mark Paused") {
+      startTransition(async () => {
+        await updateMemberStatus(member.id, "paused");
+        router.refresh();
+      });
+    } else if (action === "Delete") {
+      if (confirm(`Delete ${member.name}? This cannot be undone.`)) {
+        startTransition(async () => {
+          await deleteMember(member.id);
+          router.refresh();
+        });
+      }
+    }
+  }
+
   const statusTabs: { key: StatusFilter; label: string }[] = [
     { key: "all", label: "All" },
     { key: "active", label: "Active" },
@@ -102,12 +127,9 @@ export function MembersClient({ initialMembers }: MembersClientProps) {
         </div>
         <div className="flex gap-3">
           {selectedIds.size > 0 && (
-            <>
-              <Button variant="secondary">
-                Send WhatsApp ({selectedIds.size})
-              </Button>
-              <Button variant="secondary">Export CSV</Button>
-            </>
+            <Button variant="secondary">
+              Send WhatsApp ({selectedIds.size})
+            </Button>
           )}
           <Button variant="primary" onClick={() => setAddOpen(true)}>
             + Add Member
@@ -116,7 +138,7 @@ export function MembersClient({ initialMembers }: MembersClientProps) {
       </div>
 
       {/* Filters */}
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 flex flex-wrap items-center gap-4">
         <div className="w-64">
           <Input
             placeholder="Search name or phone…"
@@ -188,7 +210,10 @@ export function MembersClient({ initialMembers }: MembersClientProps) {
                 return (
                   <tr
                     key={member.id}
-                    className="border-b border-[--color-border] text-[--color-text-secondary] transition-colors hover:bg-[--color-surface-2]"
+                    className={cn(
+                      "border-b border-[--color-border] text-[--color-text-secondary] transition-colors hover:bg-[--color-surface-2]",
+                      isPending && "opacity-60"
+                    )}
                   >
                     <td className="px-5 py-3">
                       <input
@@ -228,16 +253,10 @@ export function MembersClient({ initialMembers }: MembersClientProps) {
                       </button>
                       {menuOpen === member.id && (
                         <div className="absolute right-0 top-full z-10 w-48 rounded-[--radius-md] border border-[--color-border] bg-[--color-surface] py-1 shadow-lg">
-                          {[
-                            "Send WhatsApp",
-                            "Log Payment",
-                            "Edit Member",
-                            "Mark Paused",
-                            "Delete",
-                          ].map((action) => (
+                          {(["Log Payment", "Mark Paused", "Delete"] as const).map((action) => (
                             <button
                               key={action}
-                              onClick={() => setMenuOpen(null)}
+                              onClick={() => handleAction(action, member)}
                               className={cn(
                                 "block w-full px-3 py-2 text-left text-sm transition-colors hover:bg-[--color-surface-2]",
                                 action === "Delete"
@@ -265,7 +284,17 @@ export function MembersClient({ initialMembers }: MembersClientProps) {
         </table>
       </section>
 
-      <AddMemberModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddMemberModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSuccess={() => router.refresh()}
+      />
+      <LogPaymentModal
+        open={paymentMember !== null}
+        onClose={() => setPaymentMember(null)}
+        members={paymentMember ? [paymentMember] : initialMembers}
+        onSuccess={() => router.refresh()}
+      />
     </div>
   );
 }

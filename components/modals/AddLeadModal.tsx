@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useTransition } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { addLead } from "@/lib/actions";
 
 interface AddLeadModalProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 const sourceOptions = [
@@ -18,29 +20,29 @@ const sourceOptions = [
   { value: "referral", label: "Referral" },
 ];
 
-export function AddLeadModal({ open, onClose }: AddLeadModalProps) {
-  const [loading, setLoading] = useState(false);
+export function AddLeadModal({ open, onClose, onSuccess }: AddLeadModalProps) {
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
-
     const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
-    const phone = formData.get("phone") as string;
-
-    if (!name || !phone) {
+    if (!formData.get("name") || !formData.get("phone")) {
       setError("Name and phone are required.");
-      setLoading(false);
       return;
     }
-
-    // TODO: Wire to Server Action — addLead(formData)
-    await new Promise((r) => setTimeout(r, 600));
-    setLoading(false);
-    onClose();
+    const form = e.currentTarget;
+    startTransition(async () => {
+      const result = await addLead(formData);
+      if (result.success) {
+        onSuccess?.();
+        onClose();
+        form.reset();
+      } else {
+        setError(result.error ?? "Failed to add lead.");
+      }
+    });
   }
 
   return (
@@ -59,19 +61,17 @@ export function AddLeadModal({ open, onClose }: AddLeadModalProps) {
             placeholder="What are your monthly packages?"
           />
         </div>
-
         {error && (
           <p className="rounded-[--radius-sm] bg-[--color-red-dim] px-3 py-2 text-xs text-[--color-red]">
             {error}
           </p>
         )}
-
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button variant="ghost" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? "Adding…" : "Add Lead"}
+          <Button variant="primary" type="submit" disabled={isPending}>
+            {isPending ? "Adding…" : "Add Lead"}
           </Button>
         </div>
       </form>

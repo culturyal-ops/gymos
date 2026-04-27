@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/Button";
 import { AddLeadModal } from "@/components/modals/AddLeadModal";
 import { cn } from "@/lib/utils/cn";
+import { updateLeadStage } from "@/lib/actions";
 import type { Lead, LeadStage } from "@/lib/types";
 
 const columns: { key: LeadStage; label: string; color: string }[] = [
@@ -35,8 +37,7 @@ function timeAgo(dateStr: string | null): string {
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
 interface LeadsClientProps {
@@ -44,20 +45,19 @@ interface LeadsClientProps {
 }
 
 export function LeadsClient({ initialLeads }: LeadsClientProps) {
+  const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [addOpen, setAddOpen] = useState(false);
 
-  const onDragEnd = useCallback(
-    (result: DropResult) => {
-      if (!result.destination) return;
-      const newStage = result.destination.droppableId as LeadStage;
-      setLeads((prev) =>
-        prev.map((l) => (l.id === result.draggableId ? { ...l, stage: newStage } : l))
-      );
-      // TODO: Update in Supabase via Server Action
-    },
-    []
-  );
+  const onDragEnd = useCallback((result: DropResult) => {
+    if (!result.destination) return;
+    const newStage = result.destination.droppableId as LeadStage;
+    const leadId = result.draggableId;
+    setLeads((prev) =>
+      prev.map((l) => (l.id === leadId ? { ...l, stage: newStage } : l))
+    );
+    updateLeadStage(leadId, newStage).catch(() => {});
+  }, []);
 
   return (
     <div>
@@ -156,7 +156,11 @@ export function LeadsClient({ initialLeads }: LeadsClientProps) {
         </div>
       </DragDropContext>
 
-      <AddLeadModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddLeadModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSuccess={() => router.refresh()}
+      />
     </div>
   );
 }
