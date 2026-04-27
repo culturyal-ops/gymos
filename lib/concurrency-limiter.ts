@@ -34,11 +34,12 @@ export async function hasAvailableSlot(
       return { available: true, activeSlots: 0, maxSlots: DEFAULT_MAX_SLOTS };
     }
 
-    const available = data.active_slots < data.max_slots;
+    const slots = data as { active_slots: number; max_slots: number };
+    const available = slots.active_slots < slots.max_slots;
     return {
       available,
-      activeSlots: data.active_slots,
-      maxSlots: data.max_slots
+      activeSlots: slots.active_slots,
+      maxSlots: slots.max_slots
     };
   } catch (error) {
     console.error("Slot check error:", error);
@@ -182,12 +183,13 @@ export async function getSlotStatus(
       };
     }
 
-    const availableSlots = Math.max(0, data.max_slots - data.active_slots);
-    const utilizationPercent = (data.active_slots / data.max_slots) * 100;
+    const slots = data as { active_slots: number; max_slots: number };
+    const availableSlots = Math.max(0, slots.max_slots - slots.active_slots);
+    const utilizationPercent = (slots.active_slots / slots.max_slots) * 100;
 
     return {
-      activeSlots: data.active_slots,
-      maxSlots: data.max_slots,
+      activeSlots: slots.active_slots,
+      maxSlots: slots.max_slots,
       availableSlots,
       utilizationPercent
     };
