@@ -6,28 +6,31 @@ import { cn } from "@/lib/utils/cn";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
 
-const navGroups = [
+const navGroups: {
+  label: string;
+  links: { href: string; label: string; glyph: string }[];
+}[] = [
   {
     label: "Main",
     links: [
-      { href: "/" as const, label: "Overview", glyph: "◈" },
-      { href: "/members" as const, label: "Members", glyph: "◉" },
-      { href: "/leads" as const, label: "Leads", glyph: "◎" },
-      { href: "/transactions" as const, label: "Transactions", glyph: "▣" }
-    ]
+      { href: "/", label: "Overview", glyph: "◈" },
+      { href: "/members", label: "Members", glyph: "◉" },
+      { href: "/leads", label: "Leads", glyph: "◎" },
+      { href: "/transactions", label: "Transactions", glyph: "▣" },
+    ],
   },
   {
     label: "Automations",
-    links: [{ href: "/whatsapp" as const, label: "WhatsApp Hub", glyph: "⟡" }]
+    links: [{ href: "/whatsapp", label: "WhatsApp Hub", glyph: "⟡" }],
   },
   {
     label: "Settings",
     links: [
-      { href: "/settings" as const, label: "Gym Settings", glyph: "◈" },
-      { href: "/staff" as const, label: "Staff", glyph: "◉" }
-    ]
-  }
-] as const;
+      { href: "/settings", label: "Gym Settings", glyph: "◈" },
+      { href: "/staff", label: "Staff", glyph: "◉" },
+    ],
+  },
+];
 
 export function Sidebar() {
   const pathname = usePathname();
