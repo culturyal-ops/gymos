@@ -6,6 +6,7 @@
 
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { logError } from "@/lib/logger";
+import { db } from "@/lib/supabase/typed-client";
 
 export async function moveToDeadLetter(
   messageId: string,
@@ -17,7 +18,7 @@ export async function moveToDeadLetter(
   const supabase = getAdminSupabase();
 
   // Insert into DLQ
-  const { error: dlqError } = await supabase
+  const { error: dlqError } = await db(supabase)
     .from("dead_letter_queue")
     .insert({
       gym_id: gymId,
@@ -31,7 +32,7 @@ export async function moveToDeadLetter(
   }
 
   // Mark original message as permanently failed
-  await supabase
+  await db(supabase)
     .from("inbound_message_queue")
     .update({ status: "failed", error_log: errorText })
     .eq("id", messageId);

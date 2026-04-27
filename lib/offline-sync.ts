@@ -6,6 +6,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { db } from "@/lib/supabase/typed-client";
 
 export interface OfflineAttendanceRecord {
   offline_id: string;
@@ -46,7 +47,7 @@ export async function syncOfflineAttendance(
 
       // Upsert into the queue using offline_id as the idempotency key.
       // ON CONFLICT (gym_id, offline_id) DO NOTHING means retries are safe.
-      const { error: queueError } = await supabase
+      const { error: queueError } = await db(supabase)
         .from("offline_attendance_queue")
         .upsert(
           {
@@ -66,7 +67,7 @@ export async function syncOfflineAttendance(
 
       // Insert attendance log — duplicate check is handled by the unique
       // constraint on (gym_id, offline_id) in the queue table above.
-      const { error: logError } = await supabase
+      const { error: logError } = await db(supabase)
         .from("attendance_logs")
         .insert({
           gym_id: gymId,
@@ -122,7 +123,7 @@ export async function syncOfflinePayments(
       const syncedAt = new Date().toISOString();
 
       // Upsert into the queue using offline_id as the idempotency key.
-      const { error: queueError } = await supabase
+      const { error: queueError } = await db(supabase)
         .from("offline_payment_queue")
         .upsert(
           {
@@ -143,7 +144,7 @@ export async function syncOfflinePayments(
       }
 
       // Insert transaction — 23505 means already inserted (idempotent)
-      const { error: txError } = await supabase
+      const { error: txError } = await db(supabase)
         .from("transactions")
         .insert({
           gym_id: gymId,
@@ -188,13 +189,13 @@ export async function getUnsyncedRecords(
   payments: OfflinePaymentRecord[];
 }> {
   try {
-    const { data: attendance, error: attError } = await supabase
+    const { data: attendance, error: attError } = await db(supabase)
       .from("offline_attendance_queue")
       .select("offline_id, member_id, gym_id, logged_at")
       .eq("gym_id", gymId)
       .eq("synced", false);
 
-    const { data: payments, error: payError } = await supabase
+    const { data: payments, error: payError } = await db(supabase)
       .from("offline_payment_queue")
       .select("offline_id, member_id, gym_id, amount, payment_mode, logged_at")
       .eq("gym_id", gymId)
@@ -226,13 +227,13 @@ export async function getSyncStatus(
   lastSyncTime: string | null;
 }> {
   try {
-    const { count: attCount, error: attError } = await supabase
+    const { count: attCount, error: attError } = await db(supabase)
       .from("offline_attendance_queue")
       .select("*", { count: "exact", head: true })
       .eq("gym_id", gymId)
       .eq("synced", false);
 
-    const { count: payCount, error: payError } = await supabase
+    const { count: payCount, error: payError } = await db(supabase)
       .from("offline_payment_queue")
       .select("*", { count: "exact", head: true })
       .eq("gym_id", gymId)
@@ -245,7 +246,7 @@ export async function getSyncStatus(
     const pendingPayments = payCount || 0;
 
     // Get last sync time
-    const { data: lastSync } = await supabase
+    const { data: lastSync } = await db(supabase)
       .from("offline_attendance_queue")
       .select("synced_at")
       .eq("gym_id", gymId)

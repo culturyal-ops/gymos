@@ -9,6 +9,7 @@
  */
 
 import { getAdminSupabase } from "@/lib/supabase/admin";
+import { db } from "@/lib/supabase/typed-client";
 
 export interface LogErrorOptions {
   gymId?: string;
@@ -54,7 +55,7 @@ export async function logError(
   // 3. Supabase error_log table — best-effort
   try {
     const supabase = getAdminSupabase();
-    await supabase.from("error_log").insert({
+    await db(supabase).from("error_log").insert({
       gym_id: options.gymId ?? null,
       context: options.context ?? null,
       message,

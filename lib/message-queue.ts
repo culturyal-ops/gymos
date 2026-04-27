@@ -7,6 +7,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { db } from "@/lib/supabase/typed-client";
 
 export type MessageStatus = "pending" | "processing" | "completed" | "failed";
 
@@ -35,7 +36,7 @@ export async function enqueueMessage(
   messageText: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db(supabase)
       .from("inbound_message_queue")
       .insert({
         gym_id: gymId,
@@ -69,7 +70,7 @@ export async function dequeueMessage(
   limit: number = 1
 ): Promise<{ messages: QueuedMessage[]; error?: string }> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db(supabase)
       .from("inbound_message_queue")
       .select("*")
       .eq("status", "pending")
@@ -97,7 +98,7 @@ export async function markProcessing(
   messageId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
+    const { error } = await db(supabase)
       .from("inbound_message_queue")
       .update({
         status: "processing",
@@ -125,7 +126,7 @@ export async function markCompleted(
   messageId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase
+    const { error } = await db(supabase)
       .from("inbound_message_queue")
       .update({
         status: "completed",
@@ -156,7 +157,7 @@ export async function markFailed(
 ): Promise<{ success: boolean; shouldRetry: boolean; error?: string }> {
   try {
     // Get current attempts
-    const { data: message, error: fetchError } = await supabase
+    const { data: message, error: fetchError } = await db(supabase)
       .from("inbound_message_queue")
       .select("attempts, max_attempts")
       .eq("id", messageId)
@@ -171,7 +172,7 @@ export async function markFailed(
     const shouldRetry = newAttempts < (message?.max_attempts || 3);
     const newStatus = shouldRetry ? "pending" : "failed";
 
-    const { error } = await supabase
+    const { error } = await db(supabase)
       .from("inbound_message_queue")
       .update({
         status: newStatus,
@@ -207,7 +208,7 @@ export async function getQueueStats(
   avgProcessingTime: number;
 }> {
   try {
-    let query = supabase.from("inbound_message_queue").select("status, created_at, processed_at");
+    let query = db(supabase).from("inbound_message_queue").select("status, created_at, processed_at");
 
     if (gymId) {
       query = query.eq("gym_id", gymId);
