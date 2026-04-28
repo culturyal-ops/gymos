@@ -957,11 +957,11 @@ where created_at > now() - interval '24 hours';
 -- Seed data (service-role only)
 -- ===========================
 
--- Insert auth users (for demo)
+-- Insert auth users (for demo) with proper password hash
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
-  ('22222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@testfitness.local', '$2a$10$placeholder', now(), '{"provider":"email"}'::jsonb, '{"name":"Owner"}'::jsonb, now(), now()),
-  ('33333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'reception@testfitness.local', '$2a$10$placeholder', now(), '{"provider":"email"}'::jsonb, '{"name":"Reception"}'::jsonb, now(), now())
+  ('22222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@testfitness.local', '$2a$10$7EqJtq98hPqEX7fNZaFWoOaZpWwQ5Q0MyoVo9hw3rroWAt4EvsC0u', now(), '{"provider":"email"}'::jsonb, '{"name":"Owner"}'::jsonb, now(), now()),
+  ('33333333-3333-3333-3333-333333333333', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'reception@testfitness.local', '$2a$10$7EqJtq98hPqEX7fNZaFWoOaZpWwQ5Q0MyoVo9hw3rroWAt4EvsC0u', now(), '{"provider":"email"}'::jsonb, '{"name":"Reception"}'::jsonb, now(), now())
 on conflict (id) do nothing;
 
 -- Insert gym + staff
@@ -1029,3 +1029,18 @@ values
 -- ✅ Proper foreign key relationships
 -- ✅ Demo data for testing
 -- ✅ No conflicts or errors
+
+-- ===========================
+-- DEMO LOGIN CREDENTIALS
+-- ===========================
+-- 
+-- Owner Account:
+--   Email: owner@testfitness.local
+--   Password: password123
+--
+-- Reception Account:  
+--   Email: reception@testfitness.local
+--   Password: password123
+--
+-- Use these credentials to log in at /login
+-- ===========================
