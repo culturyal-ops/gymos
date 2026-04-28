@@ -81,7 +81,9 @@ export async function addMember(formData: FormData) {
   }
 
   const { gymId, staffId } = await resolveGymAndStaff();
-  const supabase = getAdminSupabase();
+  
+  // Use server client (with user auth) instead of admin client for RLS compliance
+  const supabase = await getServerSupabase();
 
   const { error } = await supabase.from("members").insert({
     id: randomUUID(),

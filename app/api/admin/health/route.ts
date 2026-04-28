@@ -13,7 +13,7 @@ import { errorResponse } from "@/lib/api";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("x-internal-secret");
-  if (authHeader !== process.env.INTERNAL_API_SECRET) {
+  if (authHeader !== process.env.INTERNAL_API_SECRET!) {
     return errorResponse("Forbidden", 403);
   }
 

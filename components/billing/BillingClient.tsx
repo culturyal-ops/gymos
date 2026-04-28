@@ -44,9 +44,9 @@ export default function BillingClient({ gym, subscription, invoices }: Props) {
     startTransition(async () => {
       // Map plan slug to Razorpay Plan ID (set these in your Razorpay dashboard)
       const RAZORPAY_PLAN_IDS: Record<string, string> = {
-        starter: process.env.NEXT_PUBLIC_RZP_PLAN_STARTER ?? "",
-        growth:  process.env.NEXT_PUBLIC_RZP_PLAN_GROWTH  ?? "",
-        scale:   process.env.NEXT_PUBLIC_RZP_PLAN_SCALE   ?? "",
+        starter: process.env.NEXT_PUBLIC_RZP_PLAN_STARTER!,
+        growth:  process.env.NEXT_PUBLIC_RZP_PLAN_GROWTH!,
+        scale:   process.env.NEXT_PUBLIC_RZP_PLAN_SCALE!,
       };
 
       const res = await fetch("/api/billing/create-subscription", {

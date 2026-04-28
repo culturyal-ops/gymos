@@ -22,7 +22,7 @@ export default function AdminHealthPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const secret = process.env.NEXT_PUBLIC_INTERNAL_SECRET ?? "";
+    const secret = process.env.NEXT_PUBLIC_INTERNAL_SECRET!;
     fetch("/api/admin/health", {
       headers: { "x-internal-secret": secret },
     })

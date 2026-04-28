@@ -21,7 +21,7 @@ const schema = z.object({
 export async function POST(request: Request) {
   // Verify internal secret — this endpoint must never be publicly accessible
   const authHeader = request.headers.get("x-internal-secret");
-  if (authHeader !== process.env.INTERNAL_API_SECRET) {
+  if (authHeader !== process.env.INTERNAL_API_SECRET!) {
     return errorResponse("Forbidden", 403);
   }
 
